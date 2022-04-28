@@ -5,12 +5,13 @@ const port = process.env.PORT || 5000;
 const cors = require("cors");
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}))
 const objectId = require("mongodb").ObjectId;
 console.log("ObjectId:", objectId)
 // user = fahmidaMahjabin
 // password = SO0hYMfpjX9WM0ti
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://mongodbuser:vwXsfusnMDqyt2sY@cluster0.dfsqs.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -37,6 +38,23 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
           const query = {};
           const searchedUsers = userCollection.find(query);
           res.send( await searchedUsers.toArray())
+        })
+        // delete user
+        app.delete("/users/:id", async(req, res) =>{
+          const id = req.params.id;
+          const query = {_id: ObjectId(id)};
+          const updatedUsers = await  userCollection.deleteOne(query);
+          res.send(updatedUsers)
+        })
+
+        // update user
+        app.put("/users/:id", async(req, res) =>{
+          const id = req.params.id;
+          const updateUser = req.body;
+          console.log(updateUser);
+          const filter = {_id: ObjectId(id)};
+          const result = await userCollection.updateOne(filter,{$set:updateUser}, {upsert: true} );
+          res.send(result)
         })
       }
       finally{}
